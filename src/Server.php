@@ -179,7 +179,7 @@ class Server
         $param['create_time'] = $param['update_time'] = time();
         $id                   = $this->db[$this->worker->id]::table($this->crontabTable)
             ->insertGetId($param);
-        $id && $this->crontabRun($id);
+        $id && $this->crontabRun((int)$id);
 
         return json_encode(['code' => 200, 'msg' => 'ok', 'data' => ['code' => (bool)$id]]);
     }
