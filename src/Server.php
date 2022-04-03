@@ -195,13 +195,12 @@ class Server
             ->where('id', $param['id'])
             ->update($param);
 
+        if (isset($this->crontabPool[$param['id']])) {
+            $this->crontabPool[$param['id']]['crontab']->destroy();
+            unset($this->crontabPool[$param['id']]);
+        }
         if ($param['status'] == self::NORMAL_STATUS) {
             $this->crontabRun($param['id']);
-        } else {
-            if (isset($this->crontabPool[$param['id']])) {
-                $this->crontabPool[$param['id']]['crontab']->destroy();
-                unset($this->crontabPool[$param['id']]);
-            }
         }
 
         return json_encode(['code' => 200, 'msg' => 'ok', 'data' => ['code' => (bool)$row]]);
