@@ -1,0 +1,21 @@
+{
+  "name": "yzh52521/webman-task",
+  "description": " dynamic crontab task plugin for webman. ",
+  "keywords": ["webman", "crontab", "task"],
+  "type": "library",
+  "require": {
+    "php": ">=7.4"
+  },
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "yzh52521\\Task\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "yzh52521",
+      "email": "396751927@qq.com"
+    }
+  ]
+}
