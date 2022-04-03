@@ -217,7 +217,7 @@ class Server
     private function crontabDelete(array $param): string
     {
         if ($id = $param['id']) {
-            $ids = explode(',', $id);
+            $ids = explode(',', (string)$id);
 
             foreach ($ids as $item) {
                 if (isset($this->crontabPool[$item])) {
@@ -243,7 +243,7 @@ class Server
      */
     private function crontabReload(array $param): string
     {
-        $ids = explode(',', $param['id']);
+        $ids = explode(',', (string)$param['id']);
 
         foreach ($ids as $id) {
             if (isset($this->crontabPool[$id])) {
