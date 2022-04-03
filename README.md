@@ -4,6 +4,11 @@
 
 基于 **webman** + **TP-ORM** 的动态秒级定时任务管理，兼容 Windows 和 Linux 系统。
 
+安装
+```shell
+composer require yzh52521/webman-task
+```
+
 ## 简单使用
 
 ```
