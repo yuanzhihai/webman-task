@@ -120,9 +120,9 @@ class Server
 
     /**
      * 创建定时器
-     * @param int $id
+     * @param $id
      */
-    private function crontabRun(int $id)
+    private function crontabRun($id)
     {
         $data = $this->db[$this->worker->id]::table($this->crontabTable)
             ->where('id', $id)
@@ -179,7 +179,7 @@ class Server
         $param['create_time'] = $param['update_time'] = time();
         $id                   = $this->db[$this->worker->id]::table($this->crontabTable)
             ->insertGetId($param);
-        $id && $this->crontabRun((int)$id);
+        $id && $this->crontabRun($id);
 
         return json_encode(['code' => 200, 'msg' => 'ok', 'data' => ['code' => (bool)$id]]);
     }
