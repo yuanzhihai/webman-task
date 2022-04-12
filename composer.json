@@ -6,6 +6,10 @@
   "require": {
     "php": ">=7.4"
   },
+  "require-dev":{
+    "workerman/crontab":"^1.0",
+    "webman/think-orm":"^1.0"
+  },
   "license": "MIT",
   "autoload": {
     "psr-4": {
