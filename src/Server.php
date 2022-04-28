@@ -439,7 +439,7 @@ class Server
      */
     private function crontabLog(array $param): string
     {
-        $where = $param['data'] ?? [];
+        $where = $param['where'] ?? [];
         $limit = $param['limit'] ?? 15;
         $page  = $param['page'] ?? 1;
         $param['crontab_id'] && $where[] = ['crontab_id', '=', $param['crontab_id']];
