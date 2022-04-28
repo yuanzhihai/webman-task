@@ -504,7 +504,7 @@ class Server
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `title`(`title`) USING BTREE,
   INDEX `create_time`(`create_time`) USING BTREE,
-  INDEX `status`(`status`) USING BTREE
+  INDEX `status`(`status`) USING BTREE,
   INDEX `type`(`type`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '定时器任务表' ROW_FORMAT = DYNAMIC
 SQL;
@@ -529,7 +529,7 @@ CREATE TABLE IF NOT EXISTS `system_crontab_log`  (
   `create_time` int(11) NOT NULL DEFAULT 0 COMMENT '创建时间',
   `update_time` int(11) NOT NULL DEFAULT 0 COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `create_time`(`create_time`) USING BTREE
+  INDEX `create_time`(`create_time`) USING BTREE,
   INDEX `crontab_id`(`crontab_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '定时器任务执行日志表' ROW_FORMAT = DYNAMIC
 SQL;
