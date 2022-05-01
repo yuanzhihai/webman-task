@@ -26,6 +26,8 @@ class Server
     public const URL_CRONTAB = '3';
     // EVAL 任务
     public const EVAL_CRONTAB = '4';
+    //shell 任务
+    public const SHELL_CRONTAB = '5';
 
 
     private Worker $worker;
@@ -155,10 +157,14 @@ class Server
                             $parameter = $data['parameter'] ?: '{}';
                             $startTime = microtime(true);
                             $code      = 0;
+                            $result    = true;
                             try {
-                                $result = true;
-                                exec($data['target'], $output, $code);
-                                $exception = $output;
+                                if (strpos($data['target'], 'php webman') !== false) {
+                                    $command = $data['target'];
+                                } else {
+                                    $command = "php webman " . $data['target'];
+                                }
+                                $exception = shell_exec($command);
                             } catch (\Throwable $e) {
                                 $result    = false;
                                 $code      = 1;
@@ -174,7 +180,7 @@ class Server
                                 'crontab_id'   => $data['id'],
                                 'target'       => $data['target'],
                                 'parameter'    => $parameter,
-                                'exception'    => strtr(join(PHP_EOL, $exception), '\n', ''),
+                                'exception'    => $exception,
                                 'return_code'  => $code,
                                 'running_time' => round($endTime - $startTime, 6),
                                 'create_time'  => $time,
@@ -266,6 +272,47 @@ class Server
                                 'target'       => $data['target'],
                                 'parameter'    => $data['parameter'],
                                 'exception'    => $exception ?? '',
+                                'return_code'  => $code,
+                                'running_time' => round($endTime - $startTime, 6),
+                                'create_time'  => $time,
+                                'update_time'  => $time,
+                            ]);
+
+                        })
+                    ];
+                    break;
+                case self::SHELL_CRONTAB:
+                    $this->crontabPool[$data['id']] = [
+                        'id'          => $data['id'],
+                        'target'      => $data['target'],
+                        'rule'        => $data['rule'],
+                        'parameter'   => $data['parameter'],
+                        'singleton'   => $data['singleton'],
+                        'create_time' => date('Y-m-d H:i:s'),
+                        'crontab'     => new Crontab($data['rule'], function () use ($data) {
+                            $time      = time();
+                            $parameter = $data['parameter'] ?: '';
+                            $startTime = microtime(true);
+                            $code      = 0;
+                            $result    = true;
+                            try {
+                                $exception = shell_exec($data['target']);
+                            } catch (\Throwable $e) {
+                                $result    = false;
+                                $code      = 1;
+                                $exception = $e->getMessage();
+                            }
+
+                            $this->runInSingleton($data);
+
+                            $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
+                            $endTime = microtime(true);
+                            Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
+                            $this->crontabRunLog([
+                                'crontab_id'   => $data['id'],
+                                'target'       => $data['target'],
+                                'parameter'    => $parameter,
+                                'exception'    => $exception,
                                 'return_code'  => $code,
                                 'running_time' => round($endTime - $startTime, 6),
                                 'create_time'  => $time,
@@ -493,6 +540,7 @@ class Server
   `type` tinyint(1) NOT NULL DEFAULT 1 COMMENT '任务类型 (1 command, 2 class, 3 url, 4 eval)',
   `rule` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '任务执行表达式',
   `target` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '调用任务字符串',
+  `parameter` varchar(500) NOT NULL COMMENT '任务调用参数', 
   `running_times` int(11) NOT NULL DEFAULT '0' COMMENT '已运行次数',
   `last_running_time` int(11) NOT NULL DEFAULT '0' COMMENT '上次运行时间',
   `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '备注',
@@ -523,7 +571,7 @@ CREATE TABLE IF NOT EXISTS `system_crontab_log`  (
   `crontab_id` bigint UNSIGNED NOT NULL COMMENT '任务id',
   `target` varchar(255) NOT NULL COMMENT '任务调用目标字符串',
   `parameter` varchar(500) NOT NULL COMMENT '任务调用参数', 
-  `exception` text NOT NULL COMMENT '异常信息输出',
+  `exception` text NOT NULL COMMENT '任务执行或者异常信息输出',
   `return_code` tinyint(1) NOT NULL DEFAULT 0 COMMENT '执行返回状态[0成功; 1失败]',
   `running_time` varchar(10) NOT NULL COMMENT '执行所用时间',
   `create_time` int(11) NOT NULL DEFAULT 0 COMMENT '创建时间',
