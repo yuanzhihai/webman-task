@@ -228,7 +228,7 @@ class Server
                             $this->crontabRunLog([
                                 'crontab_id'   => $data['id'],
                                 'target'       => $data['target'],
-                                'parameter'    => $parameters,
+                                'parameter'    => $parameters??'',
                                 'exception'    => $exception ?? '',
                                 'return_code'  => $code,
                                 'running_time' => round($endTime - $startTime, 6),
