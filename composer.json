@@ -4,7 +4,7 @@
   "keywords": ["webman", "crontab", "task"],
   "type": "library",
   "require": {
-    "php": ">=7.4",
+    "php": ">=7.2.5",
     "ext-json": "*"
   },
   "require-dev":{
