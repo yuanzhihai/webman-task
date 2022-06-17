@@ -30,32 +30,32 @@ class Server
     public const SHELL_CRONTAB = '5';
 
 
-    private Worker $worker;
+    private $worker;
 
 
     /**
      * 调试模式
      * @var bool
      */
-    private bool $debug = false;
+    private  $debug = false;
 
     /**
      * 任务进程池
      * @var Crontab[] array
      */
-    private array $crontabPool = [];
+    private $crontabPool = [];
 
     /**
      * 定时任务表
      * @var string
      */
-    private string $crontabTable;
+    private  $crontabTable;
 
     /**
      * 定时任务日志表
      * @var string
      */
-    private string $crontabLogTable;
+    private  $crontabLogTable;
 
     public function __construct()
     {
