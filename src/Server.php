@@ -109,7 +109,7 @@ class Server
         $data  = Db::table($this->crontabTable)
             ->where($where)
             ->order('id', 'desc')
-            ->paginate(($page - 1) * $limit);
+            ->paginate(['list_rows'=> $limit,'page'=>$page]);
 
         return json_encode(['code' => 200, 'msg' => 'ok', 'data' => $data]);
     }
