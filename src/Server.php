@@ -37,7 +37,7 @@ class Server
      * 调试模式
      * @var bool
      */
-    private  $debug = false;
+    private $debug = false;
 
     /**
      * 任务进程池
@@ -49,13 +49,13 @@ class Server
      * 定时任务表
      * @var string
      */
-    private  $crontabTable;
+    private $crontabTable;
 
     /**
      * 定时任务日志表
      * @var string
      */
-    private  $crontabLogTable;
+    private $crontabLogTable;
 
     public function __construct()
     {
@@ -109,7 +109,7 @@ class Server
         $data  = Db::table($this->crontabTable)
             ->where($where)
             ->order('id', 'desc')
-            ->paginate(['list_rows'=> $limit,'page'=>$page]);
+            ->paginate(['list_rows' => $limit, 'page' => $page]);
 
         return json_encode(['code' => 200, 'msg' => 'ok', 'data' => $data]);
     }
@@ -219,6 +219,10 @@ class Server
                                     $code   = 1;
                                 }
                                 $exception = isset($throwable) ? $throwable->getMessage() : $res;
+                            } else {
+                                $result    = false;
+                                $code      = 1;
+                                $exception = "方法或类不存在或者错误";
                             }
 
                             $this->runInSingleton($data);
@@ -228,7 +232,7 @@ class Server
                             $this->crontabRunLog([
                                 'crontab_id'   => $data['id'],
                                 'target'       => $data['target'],
-                                'parameter'    => $parameters??'',
+                                'parameter'    => $parameters ?? '',
                                 'exception'    => $exception ?? '',
                                 'return_code'  => $code,
                                 'running_time' => round($endTime - $startTime, 6),
@@ -494,7 +498,7 @@ class Server
         $data = Db::table($this->crontabLogTable)
             ->where($where)
             ->order('id', 'desc')
-            ->paginate(['list_rows'=> $limit,'page'=>$page]);
+            ->paginate(['list_rows' => $limit, 'page' => $page]);
 
         return json_encode(['code' => 200, 'msg' => 'ok', 'data' => $data]);
     }
