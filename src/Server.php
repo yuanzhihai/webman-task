@@ -199,30 +199,39 @@ class Server
                         'singleton'   => $data['singleton'],
                         'create_time' => date('Y-m-d H:i:s'),
                         'crontab'     => new Crontab($data['rule'], function () use ($data) {
-                            $time       = time();
-                            $class      = trim($data['target']);
-                            $method     = 'execute';
+                            $time  = time();
+                            $class = trim($data['target']);
                             $parameters = $data['parameter'] ?: null;
                             $startTime  = microtime(true);
-                            if ($class && class_exists($class) && method_exists($class, $method)) {
-                                try {
-                                    $result   = true;
-                                    $code     = 0;
-                                    $instance = Container::get($class);
-                                    if (!empty($parameters)) {
-                                        $res = $instance->{$method}($parameters);
-                                    } else {
-                                        $res = $instance->{$method}();
-                                    }
-                                } catch (\Throwable $throwable) {
-                                    $result = false;
-                                    $code   = 1;
+                            if ($class) {
+                                if (strpos($class, '@') !== false) {
+                                    $class  = explode('@', $class);
+                                    $method = end($class);
+                                    array_pop($class);
+                                    $class = implode('@', $class);
+                                } else {
+                                    $method = 'execute';
                                 }
-                                $exception = isset($throwable) ? $throwable->getMessage() : $res;
-                            } else {
-                                $result    = false;
-                                $code      = 1;
-                                $exception = "方法或类不存在或者错误";
+                                if (class_exists($class) && method_exists($class, $method)) {
+                                    try {
+                                        $result   = true;
+                                        $code     = 0;
+                                        $instance = Container::get($class);
+                                        if (!empty($parameters)) {
+                                            $res = $instance->{$method}($parameters);
+                                        } else {
+                                            $res = $instance->{$method}();
+                                        }
+                                    } catch (\Throwable $throwable) {
+                                        $result = false;
+                                        $code   = 1;
+                                    }
+                                    $exception = isset($throwable) ? $throwable->getMessage() : $res;
+                                } else {
+                                    $result    = false;
+                                    $code      = 1;
+                                    $exception = "方法或类不存在或者错误";
+                                }
                             }
 
                             $this->runInSingleton($data);
