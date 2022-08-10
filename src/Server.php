@@ -161,7 +161,7 @@ class Server
                         'create_time' => date('Y-m-d H:i:s'),
                         'crontab'     => new Crontab($data['rule'], function () use ($data) {
                             $time      = time();
-                            $parameter = $data['parameter'] ?: '{}';
+                            $parameter = $data['parameter'] ?: '';
                             $startTime = microtime(true);
                             $code      = 0;
                             $result    = true;
@@ -208,7 +208,6 @@ class Server
                         'crontab'     => new Crontab($data['rule'], function () use ($data) {
                             $time       = time();
                             $class      = trim($data['target']);
-                            $parameters = $data['parameter'] ?: null;
                             $startTime  = microtime(true);
                             if ($class) {
                                 if (strpos($class, '@') !== false) {
@@ -224,7 +223,8 @@ class Server
                                         $result   = true;
                                         $code     = 0;
                                         $instance = Container::get($class);
-                                        if (!empty($parameters)) {
+                                        $parameters = json_decode($data['parameter'], true);
+                                        if (!empty($data['parameter']) && is_array($parameters)) {
                                             $res = $instance->{$method}($parameters);
                                         } else {
                                             $res = $instance->{$method}();
