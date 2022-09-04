@@ -410,6 +410,11 @@ class Server
         }
     }
 
+    /**
+     * 只在一个进程
+     * @param $crontab
+     * @return void
+     */
     private function runOnOneServer($crontab)
     {
         $taskMutex = $this->getTaskMutex();
