@@ -4,10 +4,13 @@ declare (strict_types=1);
 namespace yzh52521\Task;
 
 use support\Container;
+use support\Log;
 use think\facade\Db;
 use Workerman\Connection\TcpConnection;
 use Workerman\Crontab\Crontab;
 use Workerman\Worker;
+use yzh52521\Task\Mutex\RedisTaskMutex;
+use yzh52521\Task\Mutex\TaskMutex;
 
 /**
  * 注意：定时器开始、暂停、重起
@@ -32,6 +35,11 @@ class Server
 
 
     private $worker;
+
+    /**
+     * @var TaskMutex
+     */
+    private $taskMutex;
 
 
     /**
@@ -180,7 +188,7 @@ class Server
                             }
                             $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
 
-                            $this->runInSingleton($data);
+                            $this->decorateRunnable($data);
 
                             $endTime = microtime(true);
                             Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
@@ -243,7 +251,7 @@ class Server
                             }
                             $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
 
-                            $this->runInSingleton($data);
+                            $this->decorateRunnable($data);
 
                             $endTime = microtime(true);
                             Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
@@ -285,7 +293,7 @@ class Server
                             }
                             $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
 
-                            $this->runInSingleton($data);
+                            $this->decorateRunnable($data);
 
                             $endTime = microtime(true);
                             Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
@@ -326,7 +334,7 @@ class Server
                             }
                             $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
 
-                            $this->runInSingleton($data);
+                            $this->decorateRunnable($data);
 
                             $endTime = microtime(true);
                             Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
@@ -366,7 +374,7 @@ class Server
                             }
                             $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
 
-                            $this->runInSingleton($data);
+                            $this->decorateRunnable($data);
 
                             $endTime = microtime(true);
                             Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
@@ -400,6 +408,32 @@ class Server
             $this->debug && $this->writeln("定时器销毁", true);
             $this->crontabPool[$crontab['id']]['crontab']->destroy();
         }
+    }
+
+    private function runOnOneServer($crontab)
+    {
+        $taskMutex = $this->getTaskMutex();
+        if ($taskMutex->exists($crontab) || !$taskMutex->create($crontab)) {
+            Log::info(sprintf('Crontab task [%s] skipped execution at %s.', $crontab['name'], date('Y-m-d H:i:s')));
+            return;
+        }
+        $taskMutex->remove($crontab);
+    }
+
+    protected function decorateRunnable($crontab)
+    {
+        $this->runInSingleton($crontab);
+        $this->runOnOneServer($crontab);
+    }
+
+    private function getTaskMutex(): TaskMutex
+    {
+        if (!$this->taskMutex) {
+            $this->taskMutex = Container::has(TaskMutex::class)
+                ? Container::get(TaskMutex::class)
+                : Container::get(RedisTaskMutex::class);
+        }
+        return $this->taskMutex;
     }
 
     /**
