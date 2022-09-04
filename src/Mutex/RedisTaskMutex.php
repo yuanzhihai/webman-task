@@ -31,7 +31,7 @@ class RedisTaskMutex implements TaskMutex
     {
         return (bool)$this->redisFactory::set(
             $this->getMutexName($crontab),
-            $crontab['name'],
+            $crontab['title'],
             ['NX', 'EX' => $this->getMutexExpires()]
         );
     }
@@ -58,6 +58,6 @@ class RedisTaskMutex implements TaskMutex
 
     protected function getMutexName($crontab): string
     {
-        return 'framework' . DIRECTORY_SEPARATOR . 'crontab-' . sha1($crontab['name'] . $crontab['rule']);
+        return 'framework' . DIRECTORY_SEPARATOR . 'crontab-' . sha1($crontab['title'] . $crontab['rule']);
     }
 }
