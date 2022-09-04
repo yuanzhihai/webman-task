@@ -31,8 +31,7 @@ class RedisTaskMutex implements TaskMutex
     {
         return (bool)$this->redisFactory::set(
             $this->getMutexName($crontab),
-            $crontab['title'],
-            ['NX', 'EX' => $this->getMutexExpires()]
+            $crontab['title'], 'EX', $this->getMutexExpires(),'NX'
         );
     }
 
