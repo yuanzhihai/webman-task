@@ -9,7 +9,9 @@ use think\facade\Db;
 use Workerman\Connection\TcpConnection;
 use Workerman\Crontab\Crontab;
 use Workerman\Worker;
+use yzh52521\Task\Mutex\RedisServerMutex;
 use yzh52521\Task\Mutex\RedisTaskMutex;
+use yzh52521\Task\Mutex\ServerMutex;
 use yzh52521\Task\Mutex\TaskMutex;
 
 /**
@@ -40,6 +42,11 @@ class Server
      * @var TaskMutex
      */
     private $taskMutex;
+
+    /**
+     * @var ServerMutex
+     */
+    private $serverMutex;
 
 
     /**
@@ -77,7 +84,7 @@ class Server
     }
 
 
-    public function onWorkerStart($worker)
+    public function onWorkerStart(Worker $worker)
     {
         $config                = config('plugin.yzh52521.task.app.task');
         $this->debug           = $config['debug'] ?? true;
@@ -186,9 +193,9 @@ class Server
                                 $code      = 1;
                                 $exception = $e->getMessage();
                             }
-                            $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
 
-                            $this->decorateRunnable($data);
+                            $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
+                            $this->isSingleton($data);
 
                             $endTime = microtime(true);
                             Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
@@ -202,7 +209,7 @@ class Server
                                 'create_time'  => $time,
                                 'update_time'  => $time,
                             ]);
-
+                            $this->decorateRunnable($data);
                         })
                     ];
                     break;
@@ -249,9 +256,9 @@ class Server
                                     $exception = "方法或类不存在或者错误";
                                 }
                             }
-                            $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
 
-                            $this->decorateRunnable($data);
+                            $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
+                            $this->isSingleton($data);
 
                             $endTime = microtime(true);
                             Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
@@ -266,6 +273,7 @@ class Server
                                 'update_time'  => $time,
                             ]);
 
+                            $this->decorateRunnable($data);
                         })
                     ];
                     break;
@@ -293,7 +301,7 @@ class Server
                             }
                             $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
 
-                            $this->decorateRunnable($data);
+                            $this->isSingleton($data);
 
                             $endTime = microtime(true);
                             Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
@@ -307,6 +315,8 @@ class Server
                                 'create_time'  => $time,
                                 'update_time'  => $time,
                             ]);
+
+                            $this->decorateRunnable($data);
 
                         })
                     ];
@@ -334,7 +344,7 @@ class Server
                             }
                             $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
 
-                            $this->decorateRunnable($data);
+                            $this->isSingleton($data);
 
                             $endTime = microtime(true);
                             Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
@@ -348,6 +358,8 @@ class Server
                                 'create_time'  => $time,
                                 'update_time'  => $time,
                             ]);
+
+                            $this->decorateRunnable($data);
 
                         })
                     ];
@@ -374,7 +386,7 @@ class Server
                             }
                             $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
 
-                            $this->decorateRunnable($data);
+                            $this->isSingleton($data);
 
                             $endTime = microtime(true);
                             Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
@@ -389,6 +401,7 @@ class Server
                                 'update_time'  => $time,
                             ]);
 
+                            $this->decorateRunnable($data);
                         })
                     ];
                     break;
@@ -396,13 +409,12 @@ class Server
         }
     }
 
-
     /**
      * 是否单次
      * @param $crontab
      * @return void
      */
-    private function runInSingleton($crontab)
+    private function isSingleton($crontab)
     {
         if ($crontab['singleton'] == 0 && isset($this->crontabPool[$crontab['id']])) {
             $this->debug && $this->writeln("定时器销毁", true);
@@ -410,12 +422,13 @@ class Server
         }
     }
 
+
     /**
-     * 只在一个进程
+     * 解决任务的并发执行问题，任务永远只会同时运行 1 个
      * @param $crontab
      * @return void
      */
-    private function runOnOneServer($crontab)
+    private function runInSingleton($crontab)
     {
         $taskMutex = $this->getTaskMutex();
         if ($taskMutex->exists($crontab) || !$taskMutex->create($crontab)) {
@@ -423,6 +436,21 @@ class Server
             return;
         }
         $taskMutex->remove($crontab);
+    }
+
+
+    /**
+     * 只有一个实例执行
+     * @param $crontab
+     * @return void
+     */
+    private function runOnOneServer($crontab)
+    {
+        $taskMutex = $this->getServerMutex();
+        if (!$taskMutex->attempt($crontab)) {
+            Log::info(sprintf('Crontab task [%s] skipped execution at %s.', $crontab['title'], date('Y-m-d H:i:s')));
+            return;
+        }
     }
 
     protected function decorateRunnable($crontab)
@@ -439,6 +467,16 @@ class Server
                 : Container::get(RedisTaskMutex::class);
         }
         return $this->taskMutex;
+    }
+
+    private function getServerMutex(): ServerMutex
+    {
+        if (!$this->serverMutex) {
+            $this->serverMutex = Container::has(ServerMutex::class)
+                ? Container::get(ServerMutex::class)
+                : Container::get(RedisServerMutex::class);
+        }
+        return $this->serverMutex;
     }
 
     /**

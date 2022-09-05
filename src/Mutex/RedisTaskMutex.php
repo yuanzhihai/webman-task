@@ -26,17 +26,22 @@ class RedisTaskMutex implements TaskMutex
 
     /**
      * Attempt to obtain a task mutex for the given crontab.
+     * @param  $crontab
+     * @return bool
      */
     public function create($crontab): bool
     {
         return (bool)$this->redisFactory::set(
             $this->getMutexName($crontab),
-            $crontab['title'], 'EX', $this->getMutexExpires(),'NX'
+            $crontab['title'],
+            'EX', $this->getMutexExpires(), 'NX'
         );
     }
 
     /**
      * Determine if a task mutex exists for the given crontab.
+     * @param $crontab
+     * @return bool
      */
     public function exists($crontab): bool
     {
@@ -47,6 +52,7 @@ class RedisTaskMutex implements TaskMutex
 
     /**
      * Clear the task mutex for the given crontab.
+     * @param $crontab
      */
     public function remove($crontab)
     {
