@@ -627,7 +627,7 @@ class Server
      */
     private function writeln($msg, bool $isSuccess)
     {
-        echo '[' . date('Y-m-d H:i:s') . '] ' . $msg . ( $isSuccess ? " [Ok] " : " [Fail] " ) . PHP_EOL;
+        echo 'worker:'.$this->worker->id.' [' . date('Y-m-d H:i:s') . '] ' . $msg . ( $isSuccess ? " [Ok] " : " [Fail] " ) . PHP_EOL;
     }
 
     /**
