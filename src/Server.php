@@ -1,10 +1,9 @@
 <?php
-declare (strict_types=1);
+declare ( strict_types = 1 );
 
 namespace yzh52521\Task;
 
 use support\Container;
-use support\Log;
 use think\facade\Db;
 use Workerman\Connection\TcpConnection;
 use Workerman\Crontab\Crontab;
@@ -34,7 +33,6 @@ class Server
     public const EVAL_CRONTAB = '4';
     //shell 任务
     public const SHELL_CRONTAB = '5';
-
 
     private $worker;
 
@@ -147,8 +145,8 @@ class Server
             ->where('status', self::NORMAL_STATUS)
             ->order('sort', 'desc')
             ->column('id');
-        if (!empty($ids)) {
-            foreach ($ids as $id) {
+        if ( !empty($ids) ) {
+            foreach ( $ids as $id ) {
                 $this->crontabRun($id);
             }
         }
@@ -165,245 +163,265 @@ class Server
             ->where('status', self::NORMAL_STATUS)
             ->find();
 
-        if (!empty($data)) {
-            switch ($data['type']) {
+        if ( !empty($data) ) {
+            switch ( $data['type'] ) {
                 case self::COMMAND_CRONTAB:
-                    $this->crontabPool[$data['id']] = [
-                        'id'          => $data['id'],
-                        'target'      => $data['target'],
-                        'rule'        => $data['rule'],
-                        'parameter'   => $data['parameter'],
-                        'singleton'   => $data['singleton'],
-                        'create_time' => date('Y-m-d H:i:s'),
-                        'crontab'     => new Crontab($data['rule'], function () use ($data) {
-                            $time      = time();
-                            $parameter = $data['parameter'] ?: '';
-                            $startTime = microtime(true);
-                            $code      = 0;
-                            $result    = true;
-                            try {
-                                if (strpos($data['target'], 'php webman') !== false) {
-                                    $command = $data['target'];
-                                } else {
-                                    $command = "php webman " . $data['target'];
-                                }
-                                $exception = shell_exec($command);
-                            } catch (\Throwable $e) {
-                                $result    = false;
-                                $code      = 1;
-                                $exception = $e->getMessage();
-                            }
-
-                            $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
-                            $this->isSingleton($data);
-
-                            $endTime = microtime(true);
-                            Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
-                            $this->writeLog && $this->crontabRunLog([
-                                'crontab_id'   => $data['id'],
-                                'target'       => $data['target'],
-                                'parameter'    => $parameter,
-                                'exception'    => $exception,
-                                'return_code'  => $code,
-                                'running_time' => round($endTime - $startTime, 6),
-                                'create_time'  => $time,
-                                'update_time'  => $time,
-                            ]);
-                            $this->decorateRunnable($data);
-                        })
-                    ];
-                    break;
-                case self::CLASS_CRONTAB:
-                    $this->crontabPool[$data['id']] = [
-                        'id'          => $data['id'],
-                        'target'      => $data['target'],
-                        'rule'        => $data['rule'],
-                        'parameter'   => $data['parameter'],
-                        'singleton'   => $data['singleton'],
-                        'create_time' => date('Y-m-d H:i:s'),
-                        'crontab'     => new Crontab($data['rule'], function () use ($data) {
-                            $time      = time();
-                            $class     = trim($data['target']);
-                            $startTime = microtime(true);
-                            if ($class) {
-                                if (strpos($class, '@') !== false) {
-                                    $class  = explode('@', $class);
-                                    $method = end($class);
-                                    array_pop($class);
-                                    $class = implode('@', $class);
-                                } else {
-                                    $method = 'execute';
-                                }
-                                if (class_exists($class) && method_exists($class, $method)) {
-                                    try {
-                                        $result     = true;
-                                        $code       = 0;
-                                        $instance   = Container::get($class);
-                                        $parameters = json_decode($data['parameter'], true);
-                                        if (!empty($data['parameter']) && is_array($parameters)) {
-                                            $res = $instance->{$method}($parameters);
-                                        } else {
-                                            $res = $instance->{$method}();
-                                        }
-                                    } catch (\Throwable $throwable) {
-                                        $result = false;
-                                        $code   = 1;
+                    if ( $this->decorateRunnable($data) ) {
+                        $this->crontabPool[$data['id']] = [
+                            'id'          => $data['id'],
+                            'target'      => $data['target'],
+                            'rule'        => $data['rule'],
+                            'parameter'   => $data['parameter'],
+                            'singleton'   => $data['singleton'],
+                            'create_time' => date('Y-m-d H:i:s'),
+                            'crontab'     => new Crontab($data['rule'], function () use ($data) {
+                                $this->decorateRunnable($data);
+                                $time      = time();
+                                $parameter = $data['parameter'] ?: '';
+                                $startTime = microtime(true);
+                                $code      = 0;
+                                $result    = true;
+                                try {
+                                    if ( strpos($data['target'], 'php webman') !== false ) {
+                                        $command = $data['target'];
+                                    } else {
+                                        $command = "php webman " . $data['target'];
                                     }
-                                    $exception = isset($throwable) ? $throwable->getMessage() : $res;
-                                } else {
+                                    $exception = shell_exec($command);
+                                } catch ( \Throwable $e ) {
                                     $result    = false;
                                     $code      = 1;
-                                    $exception = "方法或类不存在或者错误";
+                                    $exception = $e->getMessage();
                                 }
-                            }
 
-                            $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
-                            $this->isSingleton($data);
+                                $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
 
-                            $endTime = microtime(true);
-                            Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
-                            $this->writeLog && $this->crontabRunLog([
-                                'crontab_id'   => $data['id'],
-                                'target'       => $data['target'],
-                                'parameter'    => $data['parameter'] ?? '',
-                                'exception'    => $exception ?? '',
-                                'return_code'  => $code,
-                                'running_time' => round($endTime - $startTime, 6),
-                                'create_time'  => $time,
-                                'update_time'  => $time,
-                            ]);
+                                $this->isSingleton($data);
 
-                            $this->decorateRunnable($data);
-                        })
-                    ];
+                                $endTime = microtime(true);
+                                Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
+                                $this->writeLog && $this->crontabRunLog([
+                                    'crontab_id'   => $data['id'],
+                                    'target'       => $data['target'],
+                                    'parameter'    => $parameter,
+                                    'exception'    => $exception,
+                                    'return_code'  => $code,
+                                    'running_time' => round($endTime - $startTime, 6),
+                                    'create_time'  => $time,
+                                    'update_time'  => $time,
+                                ]);
+
+                                $taskMutex = $this->getTaskMutex();
+                                $taskMutex->remove($data);
+                            })
+                        ];
+                    }
+                    break;
+                case self::CLASS_CRONTAB:
+                    if ( $this->decorateRunnable($data) ) {
+                        $this->crontabPool[$data['id']] = [
+                            'id'          => $data['id'],
+                            'target'      => $data['target'],
+                            'rule'        => $data['rule'],
+                            'parameter'   => $data['parameter'],
+                            'singleton'   => $data['singleton'],
+                            'create_time' => date('Y-m-d H:i:s'),
+                            'crontab'     => new Crontab($data['rule'], function () use ($data) {
+                                $time      = time();
+                                $class     = trim($data['target']);
+                                $startTime = microtime(true);
+                                if ( $class ) {
+                                    if ( strpos($class, '@') !== false ) {
+                                        $class  = explode('@', $class);
+                                        $method = end($class);
+                                        array_pop($class);
+                                        $class = implode('@', $class);
+                                    } else {
+                                        $method = 'execute';
+                                    }
+                                    if ( class_exists($class) && method_exists($class, $method) ) {
+                                        try {
+                                            $result     = true;
+                                            $code       = 0;
+                                            $instance   = Container::get($class);
+                                            $parameters = json_decode($data['parameter'], true);
+                                            if ( !empty($data['parameter']) && is_array($parameters) ) {
+                                                $res = $instance->{$method}($parameters);
+                                            } else {
+                                                $res = $instance->{$method}();
+                                            }
+                                        } catch ( \Throwable $throwable ) {
+                                            $result = false;
+                                            $code   = 1;
+                                        }
+                                        $exception = isset($throwable) ? $throwable->getMessage() : $res;
+                                    } else {
+                                        $result    = false;
+                                        $code      = 1;
+                                        $exception = "方法或类不存在或者错误";
+                                    }
+                                }
+
+                                $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
+
+                                $this->isSingleton($data);
+
+                                $endTime = microtime(true);
+                                Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
+                                $this->writeLog && $this->crontabRunLog([
+                                    'crontab_id'   => $data['id'],
+                                    'target'       => $data['target'],
+                                    'parameter'    => $data['parameter'] ?? '',
+                                    'exception'    => $exception ?? '',
+                                    'return_code'  => $code,
+                                    'running_time' => round($endTime - $startTime, 6),
+                                    'create_time'  => $time,
+                                    'update_time'  => $time,
+                                ]);
+
+                                $taskMutex = $this->getTaskMutex();
+                                $taskMutex->remove($data);
+                            })
+                        ];
+                    }
                     break;
                 case self::URL_CRONTAB:
-                    $this->crontabPool[$data['id']] = [
-                        'id'          => $data['id'],
-                        'target'      => $data['target'],
-                        'rule'        => $data['rule'],
-                        'parameter'   => $data['parameter'],
-                        'singleton'   => $data['singleton'],
-                        'create_time' => date('Y-m-d H:i:s'),
-                        'crontab'     => new Crontab($data['rule'], function () use ($data) {
-                            $time      = time();
-                            $url       = trim($data['target']);
-                            $startTime = microtime(true);
-                            $client    = new \GuzzleHttp\Client();
-                            try {
-                                $response = $client->get($url);
-                                $result   = $response->getStatusCode() === 200;
-                                $code     = 0;
-                            } catch (\Throwable $throwable) {
-                                $result    = false;
-                                $code      = 1;
-                                $exception = $throwable->getMessage();
-                            }
-                            $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
+                    if ( $this->decorateRunnable($data) ) {
+                        $this->crontabPool[$data['id']] = [
+                            'id'          => $data['id'],
+                            'target'      => $data['target'],
+                            'rule'        => $data['rule'],
+                            'parameter'   => $data['parameter'],
+                            'singleton'   => $data['singleton'],
+                            'create_time' => date('Y-m-d H:i:s'),
+                            'crontab'     => new Crontab($data['rule'], function () use ($data) {
+                                $this->decorateRunnable($data);
+                                $time      = time();
+                                $url       = trim($data['target']);
+                                $startTime = microtime(true);
+                                $client    = new \GuzzleHttp\Client();
+                                try {
+                                    $response = $client->get($url);
+                                    $result   = $response->getStatusCode() === 200;
+                                    $code     = 0;
+                                } catch ( \Throwable $throwable ) {
+                                    $result    = false;
+                                    $code      = 1;
+                                    $exception = $throwable->getMessage();
+                                }
+                                $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
 
-                            $this->isSingleton($data);
+                                $this->isSingleton($data);
 
-                            $endTime = microtime(true);
-                            Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
-                            $this->writeLog && $this->crontabRunLog([
-                                'crontab_id'   => $data['id'],
-                                'target'       => $data['target'],
-                                'parameter'    => $data['parameter'],
-                                'exception'    => $exception ?? '',
-                                'return_code'  => $code,
-                                'running_time' => round($endTime - $startTime, 6),
-                                'create_time'  => $time,
-                                'update_time'  => $time,
-                            ]);
+                                $endTime = microtime(true);
+                                Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
+                                $this->writeLog && $this->crontabRunLog([
+                                    'crontab_id'   => $data['id'],
+                                    'target'       => $data['target'],
+                                    'parameter'    => $data['parameter'],
+                                    'exception'    => $exception ?? '',
+                                    'return_code'  => $code,
+                                    'running_time' => round($endTime - $startTime, 6),
+                                    'create_time'  => $time,
+                                    'update_time'  => $time,
+                                ]);
 
-                            $this->decorateRunnable($data);
-
-                        })
-                    ];
+                                $taskMutex = $this->getTaskMutex();
+                                $taskMutex->remove($data);
+                            })
+                        ];
+                    }
                     break;
                 case self::SHELL_CRONTAB:
-                    $this->crontabPool[$data['id']] = [
-                        'id'          => $data['id'],
-                        'target'      => $data['target'],
-                        'rule'        => $data['rule'],
-                        'parameter'   => $data['parameter'],
-                        'singleton'   => $data['singleton'],
-                        'create_time' => date('Y-m-d H:i:s'),
-                        'crontab'     => new Crontab($data['rule'], function () use ($data) {
-                            $time      = time();
-                            $parameter = $data['parameter'] ?: '';
-                            $startTime = microtime(true);
-                            $code      = 0;
-                            $result    = true;
-                            try {
-                                $exception = shell_exec($data['target']);
-                            } catch (\Throwable $e) {
-                                $result    = false;
-                                $code      = 1;
-                                $exception = $e->getMessage();
-                            }
-                            $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
+                    if ( $this->decorateRunnable($data) ) {
+                        $this->crontabPool[$data['id']] = [
+                            'id'          => $data['id'],
+                            'target'      => $data['target'],
+                            'rule'        => $data['rule'],
+                            'parameter'   => $data['parameter'],
+                            'singleton'   => $data['singleton'],
+                            'create_time' => date('Y-m-d H:i:s'),
+                            'crontab'     => new Crontab($data['rule'], function () use ($data) {
+                                $this->decorateRunnable($data);
+                                $time      = time();
+                                $parameter = $data['parameter'] ?: '';
+                                $startTime = microtime(true);
+                                $code      = 0;
+                                $result    = true;
+                                try {
+                                    $exception = shell_exec($data['target']);
+                                } catch ( \Throwable $e ) {
+                                    $result    = false;
+                                    $code      = 1;
+                                    $exception = $e->getMessage();
+                                }
+                                $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
 
-                            $this->isSingleton($data);
+                                $this->isSingleton($data);
 
-                            $endTime = microtime(true);
-                            Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
-                            $this->writeLog && $this->crontabRunLog([
-                                'crontab_id'   => $data['id'],
-                                'target'       => $data['target'],
-                                'parameter'    => $parameter,
-                                'exception'    => $exception,
-                                'return_code'  => $code,
-                                'running_time' => round($endTime - $startTime, 6),
-                                'create_time'  => $time,
-                                'update_time'  => $time,
-                            ]);
+                                $endTime = microtime(true);
+                                Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
+                                $this->writeLog && $this->crontabRunLog([
+                                    'crontab_id'   => $data['id'],
+                                    'target'       => $data['target'],
+                                    'parameter'    => $parameter,
+                                    'exception'    => $exception,
+                                    'return_code'  => $code,
+                                    'running_time' => round($endTime - $startTime, 6),
+                                    'create_time'  => $time,
+                                    'update_time'  => $time,
+                                ]);
 
-                            $this->decorateRunnable($data);
-
-                        })
-                    ];
+                                $taskMutex = $this->getTaskMutex();
+                                $taskMutex->remove($data);
+                            })
+                        ];
+                    }
                     break;
                 case self::EVAL_CRONTAB:
-                    $this->crontabPool[$data['id']] = [
-                        'id'          => $data['id'],
-                        'target'      => $data['target'],
-                        'rule'        => $data['rule'],
-                        'parameter'   => $data['parameter'],
-                        'singleton'   => $data['singleton'],
-                        'create_time' => date('Y-m-d H:i:s'),
-                        'crontab'     => new Crontab($data['rule'], function () use ($data) {
-                            $time      = time();
-                            $startTime = microtime(true);
-                            $result    = true;
-                            $code      = 0;
-                            try {
-                                eval($data['target']);
-                            } catch (\Throwable $throwable) {
-                                $result    = false;
-                                $code      = 1;
-                                $exception = $throwable->getMessage();
-                            }
-                            $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
+                    if ( $this->decorateRunnable($data) ) {
+                        $this->crontabPool[$data['id']] = [
+                            'id'          => $data['id'],
+                            'target'      => $data['target'],
+                            'rule'        => $data['rule'],
+                            'parameter'   => $data['parameter'],
+                            'singleton'   => $data['singleton'],
+                            'create_time' => date('Y-m-d H:i:s'),
+                            'crontab'     => new Crontab($data['rule'], function () use ($data) {
+                                $this->decorateRunnable($data);
+                                $time      = time();
+                                $startTime = microtime(true);
+                                $result    = true;
+                                $code      = 0;
+                                try {
+                                    eval($data['target']);
+                                } catch ( \Throwable $throwable ) {
+                                    $result    = false;
+                                    $code      = 1;
+                                    $exception = $throwable->getMessage();
+                                }
+                                $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
 
-                            $this->isSingleton($data);
+                                $this->isSingleton($data);
 
-                            $endTime = microtime(true);
-                            Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
-                            $this->writeLog && $this->crontabRunLog([
-                                'crontab_id'   => $data['id'],
-                                'target'       => $data['target'],
-                                'parameter'    => $data['parameter'],
-                                'exception'    => $exception ?? '',
-                                'return_code'  => $code,
-                                'running_time' => round($endTime - $startTime, 6),
-                                'create_time'  => $time,
-                                'update_time'  => $time,
-                            ]);
+                                $endTime = microtime(true);
+                                Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
+                                $this->writeLog && $this->crontabRunLog([
+                                    'crontab_id'   => $data['id'],
+                                    'target'       => $data['target'],
+                                    'parameter'    => $data['parameter'],
+                                    'exception'    => $exception ?? '',
+                                    'return_code'  => $code,
+                                    'running_time' => round($endTime - $startTime, 6),
+                                    'create_time'  => $time,
+                                    'update_time'  => $time,
+                                ]);
 
-                            $this->decorateRunnable($data);
-                        })
-                    ];
+                                $taskMutex = $this->getTaskMutex();
+                                $taskMutex->remove($data);
+                            })
+                        ];
+                    }
                     break;
             }
         }
@@ -416,7 +434,7 @@ class Server
      */
     private function isSingleton($crontab)
     {
-        if ($crontab['singleton'] == 0 && isset($this->crontabPool[$crontab['id']])) {
+        if ( $crontab['singleton'] == 0 && isset($this->crontabPool[$crontab['id']]) ) {
             $this->debug && $this->writeln("定时器销毁", true);
             $this->crontabPool[$crontab['id']]['crontab']->destroy();
         }
@@ -426,42 +444,45 @@ class Server
     /**
      * 解决任务的并发执行问题，任务永远只会同时运行 1 个
      * @param $crontab
-     * @return void
+     * @return bool
      */
-    private function runInSingleton($crontab)
+    private function runInSingleton($crontab): bool
     {
         $taskMutex = $this->getTaskMutex();
-        if ($taskMutex->exists($crontab) || !$taskMutex->create($crontab)) {
-            Log::info(sprintf('Crontab task [%s] skipped execution at %s.', $crontab['title'], date('Y-m-d H:i:s')));
-            return;
+        if ( $taskMutex->exists($crontab) || !$taskMutex->create($crontab) ) {
+            $this->debug && $this->writeln(sprintf('Crontab task [%s] skipped execution at %s.', $crontab['title'], date('Y-m-d H:i:s')), true);
+            return false;
         }
-        $taskMutex->remove($crontab);
+        return true;
     }
 
 
     /**
-     * 只有一个实例执行
+     * 只能一个实例执行
      * @param $crontab
-     * @return void
+     * @return bool
      */
-    private function runOnOneServer($crontab)
+    private function runOnOneServer($crontab): bool
     {
         $taskMutex = $this->getServerMutex();
-        if (!$taskMutex->attempt($crontab)) {
-            Log::info(sprintf('Crontab task [%s] skipped execution at %s.', $crontab['title'], date('Y-m-d H:i:s')));
-            return;
+        if ( !$taskMutex->attempt($crontab) ) {
+            $this->debug && $this->writeln(sprintf('Crontab task [%s] skipped execution at %s.', $crontab['title'], date('Y-m-d H:i:s')), true);
+            return false;
         }
+        return true;
     }
 
-    protected function decorateRunnable($crontab)
+    protected function decorateRunnable($crontab): bool
     {
-        $this->runInSingleton($crontab);
-        $this->runOnOneServer($crontab);
+        if ( $this->runInSingleton($crontab) && $this->runOnOneServer($crontab) ) {
+            return true;
+        }
+        return false;
     }
 
     private function getTaskMutex(): TaskMutex
     {
-        if (!$this->taskMutex) {
+        if ( !$this->taskMutex ) {
             $this->taskMutex = Container::has(TaskMutex::class)
                 ? Container::get(TaskMutex::class)
                 : Container::get(RedisTaskMutex::class);
@@ -471,7 +492,7 @@ class Server
 
     private function getServerMutex(): ServerMutex
     {
-        if (!$this->serverMutex) {
+        if ( !$this->serverMutex ) {
             $this->serverMutex = Container::has(ServerMutex::class)
                 ? Container::get(ServerMutex::class)
                 : Container::get(RedisServerMutex::class);
@@ -515,11 +536,11 @@ class Server
             ->where('id', $param['id'])
             ->update($param);
 
-        if (isset($this->crontabPool[$param['id']])) {
+        if ( isset($this->crontabPool[$param['id']]) ) {
             $this->crontabPool[$param['id']]['crontab']->destroy();
             unset($this->crontabPool[$param['id']]);
         }
-        if ($param['status'] == self::NORMAL_STATUS) {
+        if ( $param['status'] == self::NORMAL_STATUS ) {
             $this->crontabRun($param['id']);
         }
 
@@ -535,11 +556,11 @@ class Server
      */
     private function crontabDelete(array $param): string
     {
-        if ($id = $param['id']) {
+        if ( $id = $param['id'] ) {
             $ids = explode(',', (string)$id);
 
-            foreach ($ids as $item) {
-                if (isset($this->crontabPool[$item])) {
+            foreach ( $ids as $item ) {
+                if ( isset($this->crontabPool[$item]) ) {
                     $this->crontabPool[$item]['crontab']->destroy();
                     unset($this->crontabPool[$item]);
                 }
@@ -564,8 +585,8 @@ class Server
     {
         $ids = explode(',', (string)$param['id']);
 
-        foreach ($ids as $id) {
-            if (isset($this->crontabPool[$id])) {
+        foreach ( $ids as $id ) {
+            if ( isset($this->crontabPool[$id]) ) {
                 $this->crontabPool[$id]['crontab']->destroy();
                 unset($this->crontabPool[$id]);
             }
@@ -606,7 +627,7 @@ class Server
      */
     private function writeln($msg, bool $isSuccess)
     {
-        echo '[' . date('Y-m-d H:i:s') . '] ' . $msg . ($isSuccess ? " [Ok] " : " [Fail] ") . PHP_EOL;
+        echo '[' . date('Y-m-d H:i:s') . '] ' . $msg . ( $isSuccess ? " [Ok] " : " [Fail] " ) . PHP_EOL;
     }
 
     /**
