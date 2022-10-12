@@ -661,7 +661,7 @@ class Server
   `type` tinyint(1) NOT NULL DEFAULT 1 COMMENT '任务类型 (1 command, 2 class, 3 url, 4 eval)',
   `rule` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '任务执行表达式',
   `target` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '调用任务字符串',
-  `parameter` varchar(500) NOT NULL COMMENT '任务调用参数', 
+  `parameter` varchar(500)  COMMENT '任务调用参数', 
   `running_times` int(11) NOT NULL DEFAULT '0' COMMENT '已运行次数',
   `last_running_time` int(11) NOT NULL DEFAULT '0' COMMENT '上次运行时间',
   `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '备注',
