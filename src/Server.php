@@ -244,7 +244,7 @@ class Server
                                             $result     = true;
                                             $code       = 0;
                                             $instance   = Container::get($class);
-                                            $parameters = json_decode($data['parameter'], true);
+                                            $parameters = !empty($data['parameter']) ? json_decode( $data['parameter'],true ) : [];
                                             if ( !empty($data['parameter']) && is_array($parameters) ) {
                                                 $res = $instance->{$method}($parameters);
                                             } else {
