@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace yzh52521\Task\Mutex;
 
 use support\Redis;
-use think\helper\Arr;
+use Illuminate\Support\Arr;
 use yzh52521\Task\util\MacAddress;
 
 class RedisServerMutex implements ServerMutex
