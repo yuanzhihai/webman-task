@@ -2,7 +2,7 @@
 
 ## 概述
 
-基于 **webman** + **TP-ORM** 的动态秒级定时任务管理，兼容 Windows 和 Linux 系统。
+基于 **webman** + **Laravel-ORM** 的动态秒级定时任务管理，兼容 Windows 和 Linux 系统。
 
 安装
 
