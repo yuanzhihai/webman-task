@@ -77,6 +77,7 @@ class Server
      */
     private $crontabLogTable;
 
+
     public function __construct()
     {
     }
@@ -199,7 +200,7 @@ class Server
                                 $this->isSingleton($data);
 
                                 $endTime = microtime(true);
-                                Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
+                                $this->updateRunning($data['id'],$time);
                                 $this->writeLog && $this->crontabRunLog([
                                     'crontab_id'   => $data['id'],
                                     'target'       => $data['target'],
@@ -267,7 +268,7 @@ class Server
                                 $this->isSingleton($data);
 
                                 $endTime = microtime(true);
-                                Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
+                                $this->updateRunning($data['id'],$time);
                                 $this->writeLog && $this->crontabRunLog([
                                     'crontab_id'   => $data['id'],
                                     'target'       => $data['target'],
@@ -314,7 +315,7 @@ class Server
                                 $this->isSingleton($data);
 
                                 $endTime = microtime(true);
-                                Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
+                                $this->updateRunning($data['id'],$time);
                                 $this->writeLog && $this->crontabRunLog([
                                     'crontab_id'   => $data['id'],
                                     'target'       => $data['target'],
@@ -360,7 +361,7 @@ class Server
                                 $this->isSingleton($data);
 
                                 $endTime = microtime(true);
-                                Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
+                                $this->updateRunning($data['id'],$time);
                                 $this->writeLog && $this->crontabRunLog([
                                     'crontab_id'   => $data['id'],
                                     'target'       => $data['target'],
@@ -405,7 +406,7 @@ class Server
                                 $this->isSingleton($data);
 
                                 $endTime = microtime(true);
-                                Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
+                                $this->updateRunning($data['id'],$time);
                                 $this->writeLog && $this->crontabRunLog([
                                     'crontab_id'   => $data['id'],
                                     'target'       => $data['target'],
@@ -425,6 +426,17 @@ class Server
                     break;
             }
         }
+    }
+
+    /**
+     * 更新运行次数/时间
+     * @param $id
+     * @param $time
+     * @return void
+     */
+    private function updateRunning($id,$time)
+    {
+        Db::query( "UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$id}" );
     }
 
     /**
@@ -518,8 +530,7 @@ class Server
     private function crontabCreate(array $param): string
     {
         $param['create_time'] = $param['update_time'] = time();
-        $id                   = Db::table($this->crontabTable)
-            ->insertGetId($param);
+        $id                   = Db::table($this->crontabTable)->insertGetId($param);
         $id && $this->crontabRun($id);
 
         return json_encode(['code' => 200, 'msg' => 'ok', 'data' => ['code' => (bool)$id]]);
@@ -655,7 +666,7 @@ class Server
     private function createCrontabTable()
     {
         $sql = <<<SQL
- CREATE TABLE IF NOT EXISTS `system_crontab`  (
+ CREATE TABLE IF NOT EXISTS `{$this->crontabTable}`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '任务标题',
   `type` tinyint(1) NOT NULL DEFAULT 1 COMMENT '任务类型 (1 command, 2 class, 3 url, 4 eval)',
@@ -687,7 +698,7 @@ SQL;
     private function createCrontabLogTable()
     {
         $sql = <<<SQL
-CREATE TABLE IF NOT EXISTS `system_crontab_log`  (
+CREATE TABLE IF NOT EXISTS `{$this->crontabLogTable}`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `crontab_id` bigint UNSIGNED NOT NULL COMMENT '任务id',
   `target` varchar(255) NOT NULL COMMENT '任务调用目标字符串',
