@@ -579,7 +579,6 @@ class Server
     {
         if ($id = $param['id']) {
             $ids = explode( ',',(string)$id );
-
             foreach ( $ids as $item ) {
                 if (isset( $this->crontabPool[$item] )) {
                     $this->crontabPool[$item]['crontab']->destroy();
