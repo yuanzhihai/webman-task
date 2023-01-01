@@ -588,7 +588,7 @@ class Server
             }
 
             $rows = Db::table( $this->crontabTable )
-                ->where( 'id in ('.$id.')' )
+                ->whereIn( 'id',$ids )
                 ->delete();
 
             return json_encode( ['code' => 200,'msg' => 'ok','data' => ['code' => (bool)$rows]] );
