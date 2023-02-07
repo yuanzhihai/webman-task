@@ -218,8 +218,6 @@ class Server
                                     'update_time'  => $time,
                                 ] );
 
-                                $taskMutex = $this->getTaskMutex();
-                                $taskMutex->remove( $data );
                             } )
                         ];
                     }
@@ -287,8 +285,6 @@ class Server
                                     'update_time'  => $time,
                                 ] );
 
-                                $taskMutex = $this->getTaskMutex();
-                                $taskMutex->remove( $data );
                             } )
                         ];
                     }
@@ -335,8 +331,6 @@ class Server
                                     'update_time'  => $time,
                                 ] );
 
-                                $taskMutex = $this->getTaskMutex();
-                                $taskMutex->remove( $data );
                             } )
                         ];
                     }
@@ -382,8 +376,6 @@ class Server
                                     'update_time'  => $time,
                                 ] );
 
-                                $taskMutex = $this->getTaskMutex();
-                                $taskMutex->remove( $data );
                             } )
                         ];
                     }
@@ -427,9 +419,6 @@ class Server
                                     'create_time'  => $time,
                                     'update_time'  => $time,
                                 ] );
-
-                                $taskMutex = $this->getTaskMutex();
-                                $taskMutex->remove( $data );
                             } )
                         ];
                     }
@@ -496,7 +485,7 @@ class Server
 
     protected function decorateRunnable($crontab): bool
     {
-        if ($this->runInSingleton( $crontab ) && $this->runOnOneServer( $crontab )) {
+        if ($this->runOnOneServer( $crontab )) {
             return true;
         }
         return false;
