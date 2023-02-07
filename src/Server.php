@@ -486,7 +486,7 @@ class Server
 
     protected function decorateRunnable($crontab): bool
     {
-        if ( $this->runInSingleton($crontab) && $this->runOnOneServer($crontab) ) {
+        if ( $this->runOnOneServer($crontab) ) {
             return true;
         }
         return false;
