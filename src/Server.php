@@ -467,7 +467,6 @@ class Server
         $taskMutex = $this->getTaskMutex();
         if ($taskMutex->exists( $crontab ) || !$taskMutex->create( $crontab )) {
             $this->debug && $this->writeln( sprintf( 'Crontab task [%s] skipped execution at %s.',$crontab['title'],date( 'Y-m-d H:i:s' ) ),true );
-            $taskMutex->remove( $crontab );
             return false;
         }
         return true;
