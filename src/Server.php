@@ -180,7 +180,6 @@ class Server
                             'singleton'   => $data['singleton'],
                             'create_time' => date( 'Y-m-d H:i:s' ),
                             'crontab'     => new Crontab( $data['rule'],function () use ($data) {
-                                $this->decorateRunnable( $data );
                                 $time      = time();
                                 $parameter = $data['parameter'] ?: '';
                                 $startTime = microtime( true );
@@ -303,7 +302,6 @@ class Server
                             'singleton'   => $data['singleton'],
                             'create_time' => date( 'Y-m-d H:i:s' ),
                             'crontab'     => new Crontab( $data['rule'],function () use ($data) {
-                                $this->decorateRunnable( $data );
                                 $time      = time();
                                 $url       = trim( $data['target'] );
                                 $startTime = microtime( true );
@@ -353,7 +351,6 @@ class Server
                             'singleton'   => $data['singleton'],
                             'create_time' => date( 'Y-m-d H:i:s' ),
                             'crontab'     => new Crontab( $data['rule'],function () use ($data) {
-                                $this->decorateRunnable( $data );
                                 $time      = time();
                                 $parameter = $data['parameter'] ?: '';
                                 $startTime = microtime( true );
@@ -402,7 +399,6 @@ class Server
                             'singleton'   => $data['singleton'],
                             'create_time' => date( 'Y-m-d H:i:s' ),
                             'crontab'     => new Crontab( $data['rule'],function () use ($data) {
-                                $this->decorateRunnable( $data );
                                 $time      = time();
                                 $startTime = microtime( true );
                                 $result    = true;
