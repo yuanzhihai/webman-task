@@ -199,6 +199,9 @@ class Server
                                     $exception = $e->getMessage();
                                 }
 
+                                $taskMutex = $this->getTaskMutex();
+                                $taskMutex->remove( $data );
+
                                 $this->debug && $this->writeln( '执行定时器任务#'.$data['id'].' '.$data['rule'].' '.$data['target'],$result );
 
                                 $this->isSingleton( $data );
@@ -217,7 +220,6 @@ class Server
                                     'create_time'  => $time,
                                     'update_time'  => $time,
                                 ] );
-
                             } )
                         ];
                     }
@@ -267,6 +269,9 @@ class Server
                                     }
                                 }
 
+                                $taskMutex = $this->getTaskMutex();
+                                $taskMutex->remove( $data );
+
                                 $this->debug && $this->writeln( '执行定时器任务#'.$data['id'].' '.$data['rule'].' '.$data['target'],$result );
 
                                 $this->isSingleton( $data );
@@ -284,7 +289,6 @@ class Server
                                     'create_time'  => $time,
                                     'update_time'  => $time,
                                 ] );
-
                             } )
                         ];
                     }
@@ -313,6 +317,10 @@ class Server
                                     $code      = 1;
                                     $exception = $throwable->getMessage();
                                 }
+
+                                $taskMutex = $this->getTaskMutex();
+                                $taskMutex->remove( $data );
+
                                 $this->debug && $this->writeln( '执行定时器任务#'.$data['id'].' '.$data['rule'].' '.$data['target'],$result );
 
                                 $this->isSingleton( $data );
@@ -358,6 +366,10 @@ class Server
                                     $code      = 1;
                                     $exception = $e->getMessage();
                                 }
+
+                                $taskMutex = $this->getTaskMutex();
+                                $taskMutex->remove( $data );
+
                                 $this->debug && $this->writeln( '执行定时器任务#'.$data['id'].' '.$data['rule'].' '.$data['target'],$result );
 
                                 $this->isSingleton( $data );
@@ -402,6 +414,10 @@ class Server
                                     $code      = 1;
                                     $exception = $throwable->getMessage();
                                 }
+
+                                $taskMutex = $this->getTaskMutex();
+                                $taskMutex->remove( $data );
+
                                 $this->debug && $this->writeln( '执行定时器任务#'.$data['id'].' '.$data['rule'].' '.$data['target'],$result );
 
                                 $this->isSingleton( $data );
@@ -485,7 +501,7 @@ class Server
 
     protected function decorateRunnable($crontab): bool
     {
-        if ($this->runOnOneServer( $crontab )) {
+        if ($this->runInSingleton($crontab) && $this->runOnOneServer( $crontab )) {
             return true;
         }
         return false;
