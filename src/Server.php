@@ -4,6 +4,7 @@ declare ( strict_types = 1 );
 namespace yzh52521\Task;
 
 use support\Container;
+use support\Redis;
 use think\facade\Db;
 use Workerman\Connection\TcpConnection;
 use Workerman\Crontab\Crontab;
@@ -94,6 +95,7 @@ class Server
 
         $this->checkCrontabTables();
         $this->crontabInit();
+        $this->delTaskMutex();
     }
 
     /**
@@ -195,7 +197,7 @@ class Server
                                 }
 
                                 $taskMutex = $this->getTaskMutex();
-                                $taskMutex->remove($data);
+                                $taskMutex->remove( $data );
 
                                 $this->debug && $this->writeln( '执行定时器任务#'.$data['id'].' '.$data['rule'].' '.$data['target'],$result );
 
@@ -264,7 +266,7 @@ class Server
                                 }
 
                                 $taskMutex = $this->getTaskMutex();
-                                $taskMutex->remove($data);
+                                $taskMutex->remove( $data );
 
                                 $this->debug && $this->writeln( '执行定时器任务#'.$data['id'].' '.$data['rule'].' '.$data['target'],$result );
 
@@ -490,7 +492,7 @@ class Server
 
     protected function decorateRunnable($crontab): bool
     {
-        if ($this->runInSingleton($crontab) && $this->runOnOneServer( $crontab )) {
+        if ($this->runInSingleton( $crontab ) && $this->runOnOneServer( $crontab )) {
             return true;
         }
         return false;
@@ -653,6 +655,16 @@ class Server
         $allTables = $this->getDbTables();
         !in_array( $this->crontabTable,$allTables ) && $this->createCrontabTable();
         !in_array( $this->crontabLogTable,$allTables ) && $this->createCrontabLogTable();
+    }
+
+    /**
+     * 删除执行失败的任务key
+     * @return void
+     */
+    private function delTaskMutex()
+    {
+        $keys = Redis::keys( 'framework'.DIRECTORY_SEPARATOR.'crontab-*' );
+        Redis::del( $keys );
     }
 
     /**
