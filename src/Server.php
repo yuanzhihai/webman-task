@@ -5,6 +5,7 @@ namespace yzh52521\Task;
 
 use support\Container;
 use support\Db;
+use support\Redis;
 use Workerman\Connection\TcpConnection;
 use Workerman\Crontab\Crontab;
 use Workerman\Worker;
@@ -96,6 +97,7 @@ class Server
 
         $this->checkCrontabTables();
         $this->crontabInit();
+        $this->delTaskMutex();
     }
 
     /**
@@ -676,6 +678,17 @@ class Server
 
         return $info;
     }
+
+    /**
+     * 删除执行失败的任务key
+     * @return void
+     */
+    private function delTaskMutex()
+    {
+        $keys = Redis::keys( 'framework' . DIRECTORY_SEPARATOR . 'crontab-*' );
+        Redis::del($keys);
+    }
+
 
     /**
      * 创建定时器任务表
