@@ -6,11 +6,11 @@
 
 使用`tp-orm` 
 
-```shell
+```php
 composer require yzh52521/webman-task
 ```
 使用`laravel orm`
-```shell
+```php
 composer require yzh52521/webman-task dev-lv
 ```
 
