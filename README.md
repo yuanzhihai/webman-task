@@ -17,7 +17,7 @@ composer require yzh52521/webman-task dev-lv
 
 ## 简单使用
 
-```
+```php
    $param = [
      'method' => 'crontabIndex',//计划任务列表
      'args'   => ['limit' => 10, 'page' => 1]//参数
