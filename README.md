@@ -4,15 +4,20 @@
 
 基于 **webman** + **TP-ORM** 的动态秒级定时任务管理，兼容 Windows 和 Linux 系统。
 
-安装
+使用`tp-orm` 
 
-```shell
+```php
 composer require yzh52521/webman-task
 ```
+使用`laravel orm`
+```php
+composer require yzh52521/webman-task dev-lv
+```
+
 
 ## 简单使用
 
-```
+```php
    $param = [
      'method' => 'crontabIndex',//计划任务列表
      'args'   => ['limit' => 10, 'page' => 1]//参数
