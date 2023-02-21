@@ -673,7 +673,7 @@ class Server
         $info   = [];
 
         foreach ( $tables as $key => $val ) {
-            $info[$key] = current( $val );
+            $info[$key] = current( (array)$val );
         }
 
         return $info;
