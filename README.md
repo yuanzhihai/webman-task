@@ -163,7 +163,7 @@ composer require yzh52521/webman-task dev-lv
       {
         "id": 251,
         "crontab_id": 1,
-        "target": "php webman version",
+        "target": "version",
         "parameter": "",
         "exception": "Webman-framework v1.3.11",
         "return_code": 0,
@@ -174,7 +174,7 @@ composer require yzh52521/webman-task dev-lv
       {
         "id": 246,
         "crontab_id": 1,
-        "target": "php webman version",
+        "target": "version",
         "parameter": "{}",
         "exception": "Webman-framework v1.3.11",
         "return_code": 0,
@@ -185,7 +185,7 @@ composer require yzh52521/webman-task dev-lv
       {
         "id": 244,
         "crontab_id": 1,
-        "target": "php webman version",
+        "target": "version",
         "parameter": "{}",
         "exception": "Webman-framework v1.3.11",
         "return_code": 0,
