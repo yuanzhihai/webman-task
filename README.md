@@ -207,17 +207,17 @@ composer require yzh52521/webman-task dev-lv
 
 **args**
 
-| 参数名称   | 参数类型 | 是否必须 | 示例                          | 备注                                                |
-|--------| -------- |-----|-----------------------------|---------------------------------------------------|
-| title  | text     | 是   | 输出 webman 版本                | 任务标题                                              |
-| type   | text     | 是   | 1                           | 任务类型 (1 command, 2 class, 3 url, 4 eval ,5 shell) |
-| rule   | text     | 是   | */3 * * * * *               | 任务执行表达式                                           |
-| target | text     | 是   | php webman version/ version | 调用任务字符串                                           |
-| parameter | text     | 否   | {}                          | 调用任务参数(url和eval无效)                                |
-| remark | text     | 是   | 每3秒执行                       | 备注                                                |
-| sort   | text     | 是   | 0                           | 排序                                                |
-| status | text     | 是   | 1                           | 状态[0禁用; 1启用]                                      |
-| singleton | text     | 否    | 1                           | 是否单次执行 [0 是 1 不是]                                 |
+| 参数名称   | 参数类型 | 是否必须 | 示例                         | 备注                                                |
+|--------| -------- |-----|----------------------------|---------------------------------------------------|
+| title  | text     | 是   | 输出 webman 版本               | 任务标题                                              |
+| type   | text     | 是   | 1                          | 任务类型 (1 command, 2 class, 3 url, 4 eval ,5 shell) |
+| rule   | text     | 是   | */3 * * * * *              | 任务执行表达式                                           |
+| target | text     | 是   | version | 调用任务字符串                                           |
+| parameter | text     | 否   | {}                         | 调用任务参数(url和eval无效)                                |
+| remark | text     | 是   | 每3秒执行                      | 备注                                                |
+| sort   | text     | 是   | 0                          | 排序                                                |
+| status | text     | 是   | 1                          | 状态[0禁用; 1启用]                                      |
+| singleton | text     | 否    | 1                          | 是否单次执行 [0 是 1 不是]                                 |
 
 
 ### 返回数据
@@ -263,18 +263,18 @@ composer require yzh52521/webman-task dev-lv
 
 **args**
 
-| 参数名称   | 参数类型 | 是否必须 | 示例                         | 备注                                               |
-|--------| -------- |------|----------------------------|--------------------------------------------------|
-| id     | text     | 是    | 1                          |                                                  |
-| title  | text     | 否    | 输出 webman 版本               | 任务标题                                             |
-| type   | text     | 否    | 1                          | 任务类型 (1 command, 2 class, 3 url, 4 eval，5 shell) |
-| rule   | text     | 否    | */3 * * * * *              | 任务执行表达式                                          |
-| target | text     | 否    | php webman version/version | 调用任务字符串                                          |
-| parameter | text     | 否    | {}                         | 调用任务参数(url和eval无效)                               |
-| remark | text     | 否    | 每3秒执行                      | 备注                                               |
-| sort   | text     | 否    | 0                          | 排序                                               |
-| status | text     | 否    | 1                          | 状态[0禁用; 1启用]                                     |
-| singleton | text     | 否    | 1                          | 是否单次执行 [0 是 1 不是]                                |
+| 参数名称   | 参数类型 | 是否必须 | 示例            | 备注                                               |
+|--------| -------- |------|---------------|--------------------------------------------------|
+| id     | text     | 是    | 1             |                                                  |
+| title  | text     | 否    | 输出 webman 版本  | 任务标题                                             |
+| type   | text     | 否    | 1             | 任务类型 (1 command, 2 class, 3 url, 4 eval，5 shell) |
+| rule   | text     | 否    | */3 * * * * * | 任务执行表达式                                          |
+| target | text     | 否    | version       | 调用任务字符串                                          |
+| parameter | text     | 否    | {}            | 调用任务参数(url和eval无效)                               |
+| remark | text     | 否    | 每3秒执行         | 备注                                               |
+| sort   | text     | 否    | 0             | 排序                                               |
+| status | text     | 否    | 1             | 状态[0禁用; 1启用]                                     |
+| singleton | text     | 否    | 1             | 是否单次执行 [0 是 1 不是]                                |
 
 ### 返回数据
 
