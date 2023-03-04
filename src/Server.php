@@ -192,8 +192,7 @@ class Server
                                 global $cli;
                                 try {
                                     $parameters = !empty( $data['parameter'] ) ? json_decode( $data['parameter'],true ) : [];
-                                    $command    = $data['target'];
-                                    $command    = $cli->find( $command );
+                                    $command    = $cli->find( $data['target'] );
                                     $greetInput = new ArrayInput( $parameters );
                                     $output     = new BufferedOutput();
                                     $command->run( $greetInput,$output );
