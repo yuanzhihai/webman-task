@@ -5,6 +5,8 @@ namespace yzh52521\Task;
 
 use support\Container;
 use support\Redis;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
 use think\facade\Db;
 use Workerman\Connection\TcpConnection;
 use Workerman\Crontab\Crontab;
@@ -183,13 +185,14 @@ class Server
                                 $startTime = microtime( true );
                                 $code      = 0;
                                 $result    = true;
+                                global $cli;
                                 try {
-                                    if (strpos( $data['target'],'php webman' ) !== false) {
-                                        $command = $data['target'];
-                                    } else {
-                                        $command = "php webman ".$data['target'];
-                                    }
-                                    $exception = shell_exec( $command );
+                                    $parameters = !empty( $data['parameter'] ) ? json_decode( $data['parameter'],true ) : [];
+                                    $command    = $cli->find( $data['target'] );
+                                    $greetInput = new ArrayInput( $parameters );
+                                    $output     = new BufferedOutput();
+                                    $command->run( $greetInput,$output );
+                                    $exception  = $output->fetch();
                                 } catch ( \Throwable $e ) {
                                     $result    = false;
                                     $code      = 1;
