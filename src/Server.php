@@ -109,7 +109,7 @@ class Server
      */
     public function onConnect(TcpConnection $connection)
     {
-        $this->checkCrontabTables();
+       
     }
 
 
