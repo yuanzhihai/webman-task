@@ -84,6 +84,7 @@ class Server
 
     public function __construct()
     {
+        $this->delTaskMutex();
     }
 
 
@@ -99,7 +100,6 @@ class Server
 
         $this->checkCrontabTables();
         $this->crontabInit();
-        $this->delTaskMutex();
     }
 
     /**
