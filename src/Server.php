@@ -269,7 +269,7 @@ class Server
                                     $code       = 0;
                                     $result     = true;
                                     $parameters = !empty($data['parameter']) ? json_decode($data['parameter'], true) : [];
-                                    static::delivery($class, $method, $parameters);
+                                    $this->delivery($class, $method, $parameters);
                                 } catch (\Throwable $throwable) {
                                     $result = false;
                                     $code   = 1;
@@ -453,7 +453,7 @@ class Server
      * @return void
      * @throws \Exception
      */
-    private static function delivery(string $class, string $method, array $parameter): void
+    private  function delivery(string $class, string $method, array $parameter): void
     {
         $taskConnection = new AsyncTcpConnection(config('plugin.yzh52521.task.app.task.async_listen'));
         $taskConnection->send(json_encode(['class' => $class, 'method' => $method, 'parameter' => $parameter]));
