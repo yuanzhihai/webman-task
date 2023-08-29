@@ -1,16 +1,10 @@
 <?php
 
 declare(strict_types=1);
-/**
- * This file is part of Heros-Worker.
- *
- * @contact  chenzf@pvc123.com
- */
 
 namespace yzh52521\Task;
 
 use support\Container;
-use support\Log;
 use Workerman\Connection\TcpConnection;
 
 /**
