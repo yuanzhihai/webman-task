@@ -207,7 +207,7 @@ class Server
                                     if ($this->runInBackground) {
                                         // Parentheses are need execute the chain of commands in a subshell
                                         // that can then run in background
-                                        $compiled = '(' . $compiled . ') > /dev/null 2>&1 &';
+                                        $compiled = $compiled . ' > /dev/null 2>&1 &';
                                     }
 
                                     $command = PHP_BINARY . ' ' . self::WEBMAN_BINARY . ' ' . trim($compiled);
