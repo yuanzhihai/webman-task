@@ -317,6 +317,5 @@ composer require yzh52521/webman-task dev-lv
 您的认可是我继续前行的动力,如果您觉得webman-task对您有帮助,请支持我,谢谢您!
 * 方式一: 点击右上角`⭐Star`按钮
 * 方式二: 扫描下方二维码,打赏我
-  <img src="https://github.com/yzh52521/webman-task/blob/main/1611693466979_.pic.jpg" alt="扫码打赏我" width="480" />
-  <img src="https://github.com/yzh52521/webman-task/blob/main/1621693466980_.pic.jpg" alt="扫码打赏我" width="480" />
+<div><img src="https://github.com/yzh52521/webman-task/blob/main/1611693466979_.pic.jpg" alt="扫码打赏我" width="480" /><img src="https://github.com/yzh52521/webman-task/blob/main/1621693466980_.pic.jpg" alt="扫码打赏我" width="480" /></div>
 
